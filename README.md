@@ -14,7 +14,7 @@ TLS caveats:
 HexChat notes:
 
 * I use hexchat on a RHEL7 desktop.  The latest version in the repos is an elderly 2.10.2 which does not support SNI.
-* However, with one minor addition (add plugins/lua.so to the %files section), the default .spec file will successfully build 2.12.0 through .3 which
+* However, with one minor addition (add plugins/lua.so to the %files section), the SRPM's .spec file will successfully build 2.12.0 through .3 which
 all support SNI.
 
 
@@ -22,7 +22,7 @@ znc caveats:
 
 * Mostly cloned from upstream https://github.com/znc/znc-docker but updated to use fedora.
 * I do not follow ZNC's recommendation and drop an initial/empty config into place before first use.
-* Restarting the container often falls foul of znc detecting an old file lock and refusing to start.  Wait and retry usually fixes.
+* The rolling deployment strategy usually causes znc to detect the old file lock - we forcefully break the lock if needed in order to start.
 
 
 
@@ -37,7 +37,7 @@ irslackd caveats:
 
 
 
-Quick start:
+Quick start (OpenShift 3.11):
 
 * oc login https://.... --token=....
 * oc new-project znc
@@ -60,4 +60,5 @@ Still to come:
 populate desired config for this.
 * Better internal SSL cert management.
 * Template file only works on 3.11 at the moment.
+
 

@@ -1,0 +1,289 @@
+{
+  "kind": "Template",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "znc-irslackd",
+    "annotations": {
+      "description": "This template deploys the znc + irslackd container in OpenShift v3",
+      "iconClass": "icon-load-balancer",
+      "tags": "znc,irslackd"
+    }
+  },
+  "objects": [
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "zncsecret"
+      },
+      "stringData": {
+        "znc-admin-password": "${ZNC_ADMIN_PASSWORD}"
+      }
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "znc-irslackd"
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "znc",
+            "protocol": "TCP",
+            "port": 7776,
+            "targetPort": 7776,
+            "nodePort": 0
+          }
+        ],
+        "selector": {
+          "app": "znc-irslackd"
+        },
+        "type": "ClusterIP",
+        "sessionAffinity": "None"
+      },
+      "status": {
+        "loadBalancer": {}
+      }
+    },
+    {
+      "kind": "Route",
+      "apiVersion": "route.openshift.io/v1",
+      "metadata": {
+        "name": "znc-route",
+        "annotations": {
+          "template.openshift.io/expose-uri": "http://{.spec.host}{.spec.path}"
+        }
+      },
+      "spec": {
+        "host": "",
+        "to": {
+          "kind": "Service",
+          "name": "znc-irslackd"
+        },
+        "tls": {
+          "termination": "passthrough",
+          "insecureEdgeTerminationPolicy": "Redirect"
+        }
+      },
+      "status": {}
+    },
+    {
+      "kind": "ImageStream",
+      "apiVersion": "image.openshift.io/v1",
+      "metadata": {
+        "name": "znc-irslackd-is"
+      },
+      "spec": {},
+      "status": {
+        "dockerImageRepository": ""
+      }
+    },
+    {
+      "kind": "ImageStream",
+      "apiVersion": "image.openshift.io/v1",
+      "metadata": {
+        "name": "fedora"
+      },
+      "spec": {
+        "dockerImageRepository": "fedora"
+      },
+      "status": {
+        "dockerImageRepository": ""
+      }
+    },
+    {
+      "kind": "BuildConfig",
+      "apiVersion": "build.openshift.io/v1",
+      "metadata": {
+        "name": "znc-irslackd-build",
+        "labels": {
+          "name": "znc-irslackd-build"
+        },
+        "annotations": {
+          "template.alpha.openshift.io/wait-for-ready": "true"
+        }
+      },
+      "spec": {
+        "source": {
+          "type": "Git",
+          "git": {
+            "uri": "https://github.com/dbaker-rh/znc-irslackd.git"
+          }
+        },
+        "strategy": {
+          "type": "Docker",
+          "dockerStrategy": {
+            "from": {
+              "kind": "ImageStreamTag",
+              "name": "fedora:latest"
+            }
+          }
+        },
+        "output": {
+          "to": {
+            "kind": "ImageStreamTag",
+            "name": "znc-irslackd-is:latest"
+          }
+        },
+        "postCommit": {},
+        "resources": {}
+      },
+      "status": {
+        "lastVersion": 0
+      }
+    },
+    {
+      "kind": "DeploymentConfig",
+      "apiVersion": "apps.openshift.io/v1",
+      "metadata": {
+        "name": "znc-irslackd",
+        "annotations": {
+          "template.alpha.openshift.io/wait-for-ready": "true"
+        }
+      },
+      "spec": {
+        "strategy": {
+          "type": "Rolling",
+          "rollingParams": {
+            "updatePeriodSeconds": 1,
+            "intervalSeconds": 1,
+            "timeoutSeconds": 120
+          },
+          "resources": {}
+        },
+        "triggers": [
+          {
+            "type": "ImageChange",
+            "imageChangeParams": {
+              "automatic": true,
+              "containerNames": [
+                "znc-irslackd"
+              ],
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "znc-irslackd-is:latest"
+              }
+            }
+          },
+          {
+            "type": "ConfigChange"
+          }
+        ],
+        "replicas": 1,
+        "selector": {
+          "name": "znc-irslackd"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "name": "znc-irslackd"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "znc-irslackd",
+                "image": "znc-irslackd-is",
+                "ports": [
+                  {
+                    "containerPort": 7776,
+                    "protocol": "TCP"
+                  }
+                ],
+                "env": [
+                  {
+                    "name": "ZNC_ADMIN_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "zncsecret",
+                        "key": "znc-admin-password"
+                      }
+                    }
+                  }
+                ],
+                "livenessProbe": {
+                  "exec": {
+                    "command": [
+                      "/opt/bin/liveness.sh"
+                    ]
+                  },
+                  "failureThreshold": 3,
+                  "initialDelaySeconds": 15,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "timeoutSeconds": 5
+                },
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "/opt/bin/readiness.sh"
+                    ]
+                  },
+                  "failureThreshold": 3,
+                  "initialDelaySeconds": 15,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "timeoutSeconds": 5
+                },
+                "volumeMounts": [
+                  {
+                    "name": "znc-irslackd-data",
+                    "mountPath": "/data"
+                  }
+                ],
+                "resources": {},
+                "terminationMessagePath": "/dev/termination-log",
+                "imagePullPolicy": "IfNotPresent",
+                "securityContext": {
+                  "capabilities": {},
+                  "privileged": false
+                }
+              }
+            ],
+            "restartPolicy": "Always",
+            "dnsPolicy": "ClusterFirst",
+            "volumes": [
+              {
+                "name": "znc-irslackd-data",
+                "persistentVolumeClaim": {
+                  "claimName": "znc-irslackd-data-pvc"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "status": {}
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "znc-irslackd-data-pvc"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "name": "ZNC_ADMIN_PASSWORD",
+      "description": "application password",
+      "generate": "expression",
+      "from": "[0-9a-f]{12}",
+      "required": true
+    }
+  ],
+  "labels": {
+    "template": "znc-irslackd-template"
+  }
+}

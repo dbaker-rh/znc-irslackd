@@ -59,6 +59,5 @@ Still to come:
 * Easier backup/restore of ZNC configs between installs.  It might be easier to script "/znc ..." config parameters from an IRC client to
 populate desired config for this.
 * Better internal SSL cert management.
-* Template file only works on 3.11 at the moment.
 
 

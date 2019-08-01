@@ -42,7 +42,8 @@ Quick start (OpenShift 3.11):
 * oc new-app -f https://raw.githubusercontent.com/dbaker-rh/znc-irslackd/master/openshift-template.json
 * or, from a checked out copy ... oc new-app -f openshift-template.json
 * oc start-build znc-irslackd-build
-* Take note of the initial znc password, and log in to the URL shown using "admin".  Use this, or create a new znc user for your use.
+* Take note of the default URL and initial znc password, and log in to the URL shown using "admin".  Use this, or create a new znc user for your use.
+* oc logs -f bc/znc-irslackd-build   # wait/watch for completion of the initial build
 * Create a new router manually if you desire something other than the default URL.
 
 

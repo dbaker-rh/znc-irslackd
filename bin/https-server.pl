@@ -3,9 +3,10 @@
 # *REALLY* simple httpd server to feed error messages
 # based on https://metacpan.org/pod/HTTP::Daemon::SSL
 #
-# It turns out that this can't actually be used because 
-# the readiness probe will never pass if it's running, and
-# we don't want the readiness to pass in an error condition.
+# It turns out that this can't actually be used in an
+# OpenShift container because the readiness probe will
+# never pass if it's running, and we don't want the
+# readiness to pass in an error condition.
 #
 
 use HTTP::Daemon::SSL;
@@ -32,7 +33,13 @@ while (my $c = $d->accept) {
     while (my $r = $c->get_request) {
         # TODO: support sending other static content like images/css for prettier error messages
         if ($r->method eq 'GET' and $r->url->path eq "/") {
-            $c->send_file_response( $html );
+            $c->send_basic_header();
+            $c->send_header("Cache-control", "no-store, must-revalidate");
+	    $c->send_header("Content-type:", "text/html");
+            $c->send_crlf();
+            $c->send_file( $html );
+
+            $c->force_last_request();
 
         } else {
             $c->send_error(RC_FORBIDDEN)

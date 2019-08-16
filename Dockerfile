@@ -2,14 +2,6 @@ FROM fedora:latest
 MAINTAINER Dave Baker <dbaker@redhat.com>
 
 
-# Compile znc
-ARG CMAKEFLAGS="-DCMAKE_INSTALL_PREFIX=/opt/znc -DWANT_CYRUS=NO -DWANT_PERL=NO -DWANT_PYTHON=NO -DWANT_IPV6=NO"
-ARG MAKEFLAGS=""
-
-ENV GPG_KEY D5823CACB477191CAC0075555AE420CC0209989E
-ENV ZNC_VERSION 1.7.4
-
-
 
 #--
 # remove these once "yum update" requirements are settled.
@@ -33,12 +25,23 @@ RUN set -x && \
     yum clean all && \
     rm -rf /var/cache/yum
 
+
+# Args to fetch and compile znc
+ENV GPG_KEY D5823CACB477191CAC0075555AE420CC0209989E
+ENV ZNC_VERSION 1.7.4
+
+ARG CMAKEFLAGS="-DCMAKE_INSTALL_PREFIX=/opt/znc -DWANT_CYRUS=NO -DWANT_PERL=NO -DWANT_PYTHON=NO -DWANT_IPV6=NO"
+ARG MAKEFLAGS=""
+
 RUN set -x && \
     # Download, verify signature, build and install ZNC \
     mkdir /src && cd /src && \
     curl -fsSL "https://znc.in/releases/archive/znc-${ZNC_VERSION}.tar.gz" -o znc.tgz && \
     curl -fsSL "https://znc.in/releases/archive/znc-${ZNC_VERSION}.tar.gz.sig" -o znc.tgz.sig && \
-    export GNUPGHOME="$( mktemp -d )" && \
+    # Oddly "docker build" and "buildah bud" both work with GNUPGHOME in /tmp, but "podman build" \
+    # does not.  Putting the temp files in /dev/shm allows gpg-agent sockets to be created as needed \
+    # and keeps gnupg operational. \
+    export GNUPGHOME="$( mktemp -d --tmpdir=/dev/shm )" && \
     # recv-keys often fails, so retry up to four times to avoid failing the build \
     ( gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "${GPG_KEY}" || \ 
       gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "${GPG_KEY}" || \ 

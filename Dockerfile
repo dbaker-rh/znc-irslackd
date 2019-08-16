@@ -29,7 +29,7 @@ RUN set -x && \
            libtool-ltdl libnsl libstdc++ libicu-devel ncurses npm  \
            gcc gcc-c++ openssl-devel cmake make curl wget hostname \
            findutils telnet git npm procps-ng net-tools gnupg      \
-           perl-HTTP-Daemon-SSL                                       && \
+           perl-HTTP-Daemon-SSL rsync                           && \
     yum clean all && \
     rm -rf /var/cache/yum
 

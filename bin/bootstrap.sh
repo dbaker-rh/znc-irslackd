@@ -119,7 +119,7 @@ if [ -e /data/znc/configs/znc.conf ]; then
 
   echo Launching ZNC
   r="R$RANDOM"   # cannot use $$ as it's always "1"
-  ( /opt/znc/bin/znc -d /data/znc ) || ( echo Breaking file lock and trying again; sleep 5; cp -f /data/znc/configs/znc.conf /tmp/znc.$r; rm -f /data/znc/configs/znc.conf; cp -f /tmp/znc.$r /data/znc/configs/znc.conf; /opt/znc/bin/znc -d /data/znc )
+  ( /opt/znc/bin/znc -d /data/znc -r ) || ( echo Breaking file lock and trying again; sleep 5; cp -f /data/znc/configs/znc.conf /tmp/znc.$r; rm -f /data/znc/configs/znc.conf; cp -f /tmp/znc.$r /data/znc/configs/znc.conf; /opt/znc/bin/znc -d /data/znc -r )
 fi
 
 

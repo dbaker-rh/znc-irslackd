@@ -12,8 +12,9 @@ TLS caveats:
 
 HexChat notes:
 
-* I use hexchat on a RHEL7 desktop.  The latest version in the repos is an elderly 2.10.2 which does not support SNI.
+* If you use hexchat on a RHEL7 desktop, the latest version in the repos is an elderly 2.10.2 and does not support SNI.
 * However, with one minor addition (add plugins/lua.so to the %files section), the SRPM's .spec file will successfully build 2.12.0 through .3 which all support SNI.
+* No issues using hexchat on RHEL8.
 
 
 znc caveats:
@@ -35,7 +36,7 @@ irslackd caveats:
 
 
 
-Quick start (OpenShift 3.11):
+Quick Start (OpenShift 3.11):
 
 * oc login https://.... --token=....
 * oc new-project znc
@@ -46,10 +47,12 @@ Quick start (OpenShift 3.11):
 * oc logs -f bc/znc-irslackd-build   # wait/watch for completion of the initial build
 * Create a new router manually if you desire something other than the default URL.
 
-
 Optional:
 
 Upload the template for (re)-use: oc create -f openshift-template.json -n namespace
+
+
+This has been lightly tested on OpenShift 4.1.x with no issues observed.
 
 
 
@@ -57,5 +60,4 @@ Still to come:
 
 * Easier backup/restore of ZNC configs between installs.  It might be easier to script "/znc ..." config parameters from an IRC client to populate desired config for this.
 * Better internal SSL cert management.
-
 

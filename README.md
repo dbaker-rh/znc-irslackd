@@ -8,6 +8,7 @@ TLS caveats:
 * In order for IRC over SSL to pass through the OpenShift router, we must use "TLS passthrough" rather than "edge".
 * This means the cert inside the container cannot leverage the (presumed) valid cert on the cluster itself (We generate a self-signed cert internally - a future enhancement if running outside of a private network is to leverage certbot/letsencrypt to generate a live cert)
 * This also means your IRC client needs to support SNI.
+* Your client will connect to port 443, which is routed to the internally exposed 7776.
 
 
 HexChat notes:
@@ -22,6 +23,7 @@ znc caveats:
 * Mostly cloned from upstream https://github.com/znc/znc-docker but updated to use fedora.
 * I do not follow ZNC's recommendation and drop an initial/empty config into place before first use.
 * The rolling deployment strategy usually causes znc to detect the old file lock - we forcefully break the lock if needed in order to start.
+* The initial admin password is generated when the deployment config is created.  As soon as you change it, the environment variable containing the original one will be present but incorrect.
 
 
 

@@ -86,7 +86,7 @@
         "name": "fedora"
       },
       "spec": {
-        "dockerImageRepository": "fedora"
+        "dockerImageRepository": "docker.io/library/fedora"
       },
       "status": {
         "dockerImageRepository": ""

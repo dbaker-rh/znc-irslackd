@@ -1,4 +1,4 @@
-FROM fedora:latest
+FROM docker.io/library/fedora:latest
 MAINTAINER Dave Baker <dbaker@redhat.com>
 
 

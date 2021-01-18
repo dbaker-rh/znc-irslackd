@@ -1,4 +1,4 @@
-FROM docker.io/library/fedora:latest
+FROM registry.fedoraproject.org/fedora:33
 MAINTAINER Dave Baker <dbaker@redhat.com>
 
 
@@ -28,7 +28,7 @@ RUN set -x && \
 
 # Args to fetch and compile znc
 ENV GPG_KEY D5823CACB477191CAC0075555AE420CC0209989E
-ENV ZNC_VERSION 1.7.4
+ENV ZNC_VERSION 1.8.2
 
 ARG CMAKEFLAGS="-DCMAKE_INSTALL_PREFIX=/opt/znc -DWANT_CYRUS=NO -DWANT_PERL=NO -DWANT_PYTHON=NO -DWANT_IPV6=NO"
 ARG MAKEFLAGS=""
